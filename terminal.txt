@@ -1,0 +1,9 @@
+poetry in  -- it
+portry install
+.venv\Scripts\activate
+poetry run python main.py
+python backend.py + open with live server
+
+requires-python = ">=3.10,<4.0.0"
+ poetry lock
+ poetry install

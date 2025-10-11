@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orris - Audio News Platform</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            z-index: 1;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .gradient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .orb-1 {
+            top: -10%;
+            right: -5%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, #dc143c 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-2 {
+            bottom: -10%;
+            left: -5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #8b0000 0%, transparent 70%);
+            animation: float 25s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 60px 20px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: -3px;
+            background: linear-gradient(135deg, #ff4757 0%, #dc143c 50%, #8b0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::after {
+            content: 'ORRIS';
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            filter: blur(20px);
+            opacity: 0.5;
+        }
+
+        .tagline {
+            font-size: 1.1rem;
+            color: #999;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(220, 20, 60, 0.15);
+            border-radius: 20px;
+            padding: 35px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(220, 20, 60, 0.3);
+            box-shadow: 0 20px 60px rgba(220, 20, 60, 0.1);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .source-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .source-option {
+            padding: 18px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+
+        .source-option:hover {
+            background: rgba(220, 20, 60, 0.1);
+            border-color: rgba(220, 20, 60, 0.3);
+            transform: translateX(5px);
+        }
+
+        .source-option.active {
+            background: rgba(220, 20, 60, 0.2);
+            border-color: #dc143c;
+        }
+
+        .source-icon {
+            font-size: 1.3rem;
+        }
+
+        .input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .topic-input {
+            width: 100%;
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .topic-input:focus {
+            outline: none;
+            border-color: #dc143c;
+            background: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.1);
+        }
+
+        .topic-input::placeholder {
+            color: #666;
+        }
+
+        .btn-add {
+            margin-top: 15px;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(220, 20, 60, 0.4);
+        }
+
+        .btn-add:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .topics-display {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .topic-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            background: rgba(220, 20, 60, 0.15);
+            border: 1px solid rgba(220, 20, 60, 0.3);
+            border-radius: 50px;
+            margin: 8px 8px 8px 0;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .topic-pill:hover {
+            background: rgba(220, 20, 60, 0.25);
+        }
+
+        .remove-btn {
+            background: rgba(220, 20, 60, 0.3);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: #dc143c;
+            transform: rotate(90deg);
+        }
+
+        .generate-section {
+            margin-top: 30px;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 25px;
+            background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%);
+            border: none;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-generate::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-generate:hover:not(:disabled)::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(220, 20, 60, 0.5);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            margin-top: 30px;
+        }
+
+        .spinner.active {
+            display: block;
+        }
+
+        .spinner-ring {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(220, 20, 60, 0.1);
+            border-top-color: #dc143c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner-text {
+            color: #999;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        .audio-result {
+            margin-top: 40px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(220, 20, 60, 0.2);
+            border-radius: 20px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .audio-player-custom {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(220, 20, 60, 0.2);
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%);
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(220, 20, 60, 0.5);
+        }
+
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #dc143c 0%, #ff4757 100%);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .time-display {
+            font-size: 0.85rem;
+            color: #999;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .volume-icon {
+            font-size: 1.2rem;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #dc143c;
+            cursor: pointer;
+        }
+
+        .speed-control {
+            display: flex;
+            gap: 8px;
+        }
+
+        .speed-btn {
+            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(220, 20, 60, 0.2);
+            border-radius: 8px;
+            color: #999;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .speed-btn:hover {
+            background: rgba(220, 20, 60, 0.1);
+            color: #fff;
+        }
+
+        .speed-btn.active {
+            background: rgba(220, 20, 60, 0.3);
+            border-color: #dc143c;
+            color: #fff;
+        }
+
+        .btn-download {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+        }
+
+        .error-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(220, 20, 60, 0.1);
+            border: 1px solid rgba(220, 20, 60, 0.3);
+            border-radius: 12px;
+            color: #ff6b6b;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                font-size: 3.5rem;
+            }
+
+            .control-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-bg"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">ORRIS</div>
+            <div class="tagline">AI-Powered Audio Intelligence</div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Sidebar -->
+            <div class="card">
+                <div class="card-title">Data Sources</div>
+                <div class="source-grid">
+                    <div class="source-option active" data-source="both">
+                        <span class="source-icon">🌐</span>
+                        <span>Both Sources</span>
+                    </div>
+                    <div class="source-option" data-source="news">
+                        <span class="source-icon">📰</span>
+                        <span>News Only</span>
+                    </div>
+                    <div class="source-option" data-source="reddit">
+                        <span class="source-icon">💬</span>
+                        <span>Reddit Only</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="card">
+                <div class="card-title">Topic Selection</div>
+                
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        id="topicInput" 
+                        class="topic-input" 
+                        placeholder="Enter a topic (e.g., Artificial Intelligence)"
+                        maxlength="100"
+                    >
+                </div>
+
+                <button id="addBtn" class="btn-add">
+                    Add Topic
+                </button>
+
+                <div id="topicsDisplay" class="topics-display" style="display: none;">
+                    <div class="card-title">Selected Topics</div>
+                    <div id="topicsContainer"></div>
+                </div>
+
+                <div class="generate-section">
+                    <button id="generateBtn" class="btn-generate" disabled>
+                        🎙️ Generate Audio Summary
+                    </button>
+
+                    <div id="spinner" class="spinner">
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-text">Analyzing and generating audio...</div>
+                    </div>
+
+                    <div id="errorContainer"></div>
+                    <div id="audioContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Backend URL - EXACT AS BEFORE
+        const BACKEND_URL = 'http://localhost:1234';
+        
+        // State
+        let topics = [];
+        let selectedSource = 'both';
+        let audioBlob = null;
+        let audioElement = null;
+        let isPlaying = false;
+
+        // DOM Elements
+        const topicInput = document.getElementById('topicInput');
+        const addBtn = document.getElementById('addBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const topicsDisplay = document.getElementById('topicsDisplay');
+        const topicsContainer = document.getElementById('topicsContainer');
+        const sourceOptions = document.querySelectorAll('.source-option');
+        const spinner = document.getElementById('spinner');
+        const errorContainer = document.getElementById('errorContainer');
+        const audioContainer = document.getElementById('audioContainer');
+
+        // Source selection
+        sourceOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                sourceOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                selectedSource = option.dataset.source;
+            });
+        });
+
+        // Add topic - FIXED: Removed limit
+        addBtn.addEventListener('click', () => {
+            const topic = topicInput.value.trim();
+            if (topic) {  // ← BUG FIX: Removed length limit!
+                topics.push(topic);
+                topicInput.value = '';
+                updateUI();
+            }
+        });
+
+        // Enter key to add
+        topicInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addBtn.click();
+            }
+        });
+
+        // Input validation
+        topicInput.addEventListener('input', () => {
+            updateUI();
+        });
+
+        // Update UI - FIXED: No limit on topics
+        function updateUI() {
+            addBtn.disabled = !topicInput.value.trim();  // ← BUG FIX: Only check if input is empty!
+
+            if (topics.length > 0) {
+                topicsDisplay.style.display = 'block';
+                topicsContainer.innerHTML = topics.map((topic, index) => `
+                    <div class="topic-pill">
+                        <span>${topic}</span>
+                        <button class="remove-btn" onclick="removeTopic(${index})">×</button>
+                    </div>
+                `).join('');
+            } else {
+                topicsDisplay.style.display = 'none';
+            }
+
+            generateBtn.disabled = topics.length === 0;
+        }
+
+        // Remove topic
+        function removeTopic(index) {
+            topics.splice(index, 1);
+            updateUI();
+        }
+
+        // Generate audio - EXACT API CALL
+        generateBtn.addEventListener('click', async () => {
+            console.log('[START] Generate button clicked');
+            console.log('[INFO] Topics:', topics);
+            console.log('[INFO] Source type:', selectedSource);
+            
+            if (topics.length === 0) {
+                showError('Please add at least one topic');
+                return;
+            }
+
+            errorContainer.innerHTML = '';
+            audioContainer.innerHTML = '';
+            spinner.classList.add('active');
+            generateBtn.disabled = true;
+
+            try {
+                console.log('[REQUEST] Sending to:', `${BACKEND_URL}/generate-news-audio`);
+                
+                // EXACT REQUEST - NO CHANGES
+                const response = await fetch(`${BACKEND_URL}/generate-news-audio`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topics: topics,              // EXACT PARAM
+                        source_type: selectedSource  // EXACT PARAM
+                    })
+                });
+
+                console.log('[RESPONSE] Status:', response.status);
+
+                if (response.ok) {
+                    console.log('[SUCCESS] Audio received');
+                    audioBlob = await response.blob();
+                    console.log('[INFO] Blob size:', audioBlob.size, 'bytes');
+                    
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // ← BUG FIX: Custom audio player with controls!
+                    createAudioPlayer(audioUrl);
+                } else {
+                    const error = await response.json();
+                    showError(`API Error (${response.status}): ${error.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('[ERROR]:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    showError('🔌 Connection Error: Backend not reachable at http://localhost:1234');
+                } else {
+                    showError(`⚠️ Error: ${error.message}`);
+                }
+            } finally {
+                console.log('[CLEANUP] Done');
+                spinner.classList.remove('active');
+                generateBtn.disabled = topics.length === 0;
+            }
+        });
+
+        // Create custom audio player with speed controls
+        function createAudioPlayer(audioUrl) {
+            audioContainer.innerHTML = `
+                <div class="audio-result">
+                    <div class="audio-player-custom">
+                        <div class="audio-controls">
+                            <button class="play-btn" id="playBtn">▶</button>
+                            <div class="progress-container" id="progressContainer">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+                            <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
+                        </div>
+                        <div class="control-row">
+                            <div class="volume-control">
+                                <span class="volume-icon">🔊</span>
+                                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+                            </div>
+                            <div class="speed-control">
+                                <button class="speed-btn" data-speed="0.5">0.5x</button>
+                                <button class="speed-btn active" data-speed="1">1x</button>
+                                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                                <button class="speed-btn" data-speed="2">2x</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="downloadBtn" class="btn-download">
+                        📥 Download Audio Summary
+                    </button>
+                </div>
+            `;
+
+            // Create audio element
+            audioElement = new Audio(audioUrl);
+            audioElement.preload = 'auto';
+
+            // Play/Pause
+            const playBtn = document.getElementById('playBtn');
+            playBtn.addEventListener('click', togglePlay);
+
+            // Progress bar
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            audioElement.addEventListener('timeupdate', updateProgress);
+            progressContainer.addEventListener('click', seek);
+
+            // Volume
+            const volumeSlider = document.getElementById('volumeSlider');
+            volumeSlider.addEventListener('input', (e) => {
+                audioElement.volume = e.target.value / 100;
+            });
+
+            // Speed controls
+            const speedBtns = document.querySelectorAll('.speed-btn');
+            speedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    speedBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    audioElement.playbackRate = parseFloat(btn.dataset.speed);
+                });
+            });
+
+            // Download
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.addEventListener('click', () => {
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                a.download = 'orris-news-summary.mp3';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+
+            // Auto play
+            audioElement.play();
+            isPlaying = true;
+            playBtn.textContent = '⏸';
+        }
+
+        function togglePlay() {
+            const playBtn = document.getElementById('playBtn');
+            if (isPlaying) {
+                audioElement.pause();
+                playBtn.textContent = '▶';
+            } else {
+                audioElement.play();
+                playBtn.textContent = '⏸';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const timeDisplay = document.getElementById('timeDisplay');
+            
+            const percent = (audioElement.currentTime / audioElement.duration) * 100;
+            progressBar.style.width = percent + '%';
+            
+            const current = formatTime(audioElement.currentTime);
+            const total = formatTime(audioElement.duration);
+            timeDisplay.textContent = `${current} / ${total}`;
+        }
+
+        function seek(e) {
+            const progressContainer = document.getElementById('progressContainer');
+            const clickX = e.offsetX;
+            const width = progressContainer.offsetWidth;
+            const percent = clickX / width;
+            audioElement.currentTime = percent * audioElement.duration;
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Show error
+        function showError(message) {
+            errorContainer.innerHTML = `
+                <div class="error-box">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Initial setup
+        updateUI();
+    </script>
+</body>
+</html>
